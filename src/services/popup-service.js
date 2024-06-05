@@ -1,5 +1,5 @@
 import { markRaw } from "vue";
-import store from "@/services/store-service";
+import { usePopupStore } from "@/store/popup-store";
 import i18n from "@/services/i18n-service";
 
 export class PopupService {
@@ -23,10 +23,16 @@ export class PopupService {
       allowDismissWhenTimerRunning: false, // 同上 只是改為關閉
       BackdropStyle: "rgba(0, 0, 0, 0.6)",
     };
+    this.store = {};
   }
 
   get state() {
-    return store.state.app.popupState;
+    return this.store.popupState;
+  }
+
+  /** 待vue元件掛載完成後 掛載pinia */
+  init() {
+    this.store = usePopupStore();
   }
 
   async modal(option = {}) {
@@ -43,7 +49,7 @@ export class PopupService {
     } = option;
     /* 這邊使用prmise的原因是因為要使用非異步 */
     return new Promise((resolve) => {
-      store.commit("app/set/popup", {
+      this.store.setPopupState({
         ...this.initStates,
         type: "Modal",
         resolve,
@@ -61,14 +67,17 @@ export class PopupService {
   }
 
   clear() {
-    store.commit("app/clear/popup");
+    this.store.clearPopupState();
   }
 }
+const instance = new PopupService();
 
+/** 會在main.js加載 */
 PopupService.prototype.install = function install(app) {
+  instance.init();
   const provideName = "popup-service";
   app.config.globalProperties[provideName] = this;
   app.provide(provideName, this);
 };
 
-export default new PopupService();
+export default instance;

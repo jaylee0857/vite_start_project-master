@@ -1,5 +1,8 @@
-/* 語系處理 */
-const files = import.meta.globEager("../locales/**/*.js");
+/*
+  語系處理
+  @desc 抓取locales底下的所有js檔案
+ */
+const files = import.meta.glob("../locales/**/*.js", { eager: true });
 import * as R from "ramda";
 const messages = {};
 
@@ -9,11 +12,11 @@ for (let path in files) {
     .toLowerCase()
     .replace(".js", "");
   const [locale, ...paths] = pathToFile.split("/");
-  const messageKey = R.join(".", paths);
-  const fileObj = files[path].default;
-  // console.log(path); //path為該語系資料夾名稱
+  const messageKey = R.join(".", paths); // 語系key
+  const fileObj = files[path].default; // 語系value
   messages[locale] = R.reduce(
     (merge, key) =>
+      /** 合併每個 */
       R.mergeDeepRight(merge, {
         [`${messageKey}.${key}`]: fileObj[key],
       }),
